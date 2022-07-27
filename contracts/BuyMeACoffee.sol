@@ -59,4 +59,11 @@ contract BuyMeACoffee is ReentrancyGuard {
             revert BuyMeACoffee__TransferFailed();
         }
     }
+
+    /**
+     * @dev retrieve all the memos received and stored on the blockchain
+     */
+    function getMemos() public view returns (Memo[] memory) {
+        return s_memos;
+    }
 }
