@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.7;
 
-error BuyMeACoffee__PriceMustBeAboveZero();
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract BuyMeACoffee {
+error BuyMeACoffee__PriceMustBeAboveZero();
+error BuyMeACoffee__YouAreNotTheOwner();
+error BuyMeACoffee__TransferFailed();
+
+contract BuyMeACoffee is ReentrancyGuard {
     struct Memo {
         address from;
         uint256 timestamp;
@@ -41,5 +45,18 @@ contract BuyMeACoffee {
         s_memos.push(Memo(msg.sender, block.timestamp, _name, _message));
 
         emit NewMemo(msg.sender, block.timestamp, _name, _message);
+    }
+
+    /**
+     * @dev send the entire balance stored in this contract to the owner
+     */
+    function withdrawTips() external nonReentrant {
+        if (msg.sender != i_owner) {
+            revert BuyMeACoffee__YouAreNotTheOwner();
+        }
+        (bool success, ) = i_owner.call{value: address(this).balance}("");
+        if (!success) {
+            revert BuyMeACoffee__TransferFailed();
+        }
     }
 }
